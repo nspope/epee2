@@ -23,7 +23,9 @@ double Regression::loglikelihood (const vec& L, const vec& S, const std::vector<
   {
     approximation.Z.t().print("Z");
     if (approximation.Z.has_nan())
+    {
       Rcpp::stop ("EP approximation failed; perhaps region of integration lacks sufficient density?");
+    }
     Rcpp::warning ("EP approximation did not converge in maximum number of iterations");
   }
   ll += approximation.Z(approximation.Z.n_elem-1);

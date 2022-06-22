@@ -6,11 +6,18 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 
 RcppExport SEXP _rcpp_module_boot_epee();
+RcppExport SEXP _rcpp_module_boot_threshold();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_epee", (DL_FUNC) &_rcpp_module_boot_epee, 0},
+    {"_rcpp_module_boot_threshold", (DL_FUNC) &_rcpp_module_boot_threshold, 0},
     {NULL, NULL, 0}
 };
 
