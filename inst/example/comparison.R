@@ -1,4 +1,8 @@
-# Nate Pope 22 June 2022 : I can't get Hiscott method to work with mixed continuous/binary, so let's just work with 2 binary traits
+#--------------------#
+# compare accuracy of loglikelihood approximation for 2d binary/binary problem
+#--------------------#
+
+# Nate 22 June 2022 : I can't get Hiscott method to work with mixed continuous/binary, so let's just work with 2 binary traits
 # We can always show accuracy of the mixed case by comparing MLEs to true values across simulations rather than comparing likelihood to "gold standard"
 
 #devtools::install_github("nspope/epee2")

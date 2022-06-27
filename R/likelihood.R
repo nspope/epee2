@@ -76,6 +76,44 @@ epee2d <- function(data, tree, Sigma=diag(nrow(data)), Lambda=diag(nrow(data)), 
   llfac$loglikelihood(lambdaf, sigmaf, as.list(mu))
 }
 
+log_cholesky_parameterization <- function(covariance_matrix)
+{
+  covariance_matrix <- t(chol(covariance_matrix))
+  diag(covariance_matrix) <- log(diag(covariance_matrix))
+  covariance_matrix
+}
+
+epee_objective_fn <- function(data, tree, Sigma_log_cholesky, Lambda_log_cholesky, mu, tol=1e-4, max_iter=100, verbose=FALSE)
+{
+  # covariance must be parameterized as *lower triangular* log-cholesky factors
+
+  dim <- nrow(data)
+  ntips <- length(tree$tip.label)
+  tree <- ape::reorder.phylo(tree, "postorder")
+
+  traits <- data
+  design <- rep(list(matrix(1,ntips,1)), dim)
+  type <- as.numeric(apply(data, 1, function(x) all(x >= 0) & all(abs(x) < .Machine$double.eps | abs(1-x) < .Machine$double.eps)))
+  if (verbose) cat("Trait types:", c("continuous", "binary")[type+1], "\n", sep=" ")
+
+  stopifnot(length(Sigma_log_cholesky) == dim * (dim+1) / 2)
+  stopifnot(length(Lambda_log_cholesky) == dim * (dim+1) / 2)
+  stopifnot(length(mu) == dim)
+
+  desn <- Design$new(traits, design, type, tree$edge-1, tree$edge.length)
+  cons <- Constraints$new(matrix(NA,0,2), matrix(NA,0,2), dim) # no constraints
+  llfac <- Regression$new(desn, cons)
+  llfac$options(tol, max_iter, TRUE)
+
+  loglik <- llfac$loglikelihood(Lambda_log_cholesky, Sigma_log_cholesky, as.list(mu))
+  grad_Lambda_log_cholesky <- c(llfac$dL)
+  grad_Sigma_log_cholesky <- c(llfac$dS)
+  grad_mu <- unlist(llfac$db)
+
+  list(loglikelihood=loglik, gradient_Lambda_log_cholesky=grad_Lambda_log_cholesky, 
+       gradient_Sigma_log_cholesky=grad_Sigma_log_cholesky, gradient_mu=grad_mu)
+}
+
 # note on identifiability: the following are equivalent ...
 # mvtnorm::pmvnorm(c(0,0),c(Inf,Inf),c(1,1),sigma=matrix(c(1,0.2,0.2,1),2,2))
 # k = 2
